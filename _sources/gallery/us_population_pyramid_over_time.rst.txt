@@ -21,8 +21,10 @@ distribution over time.
 
     pop = data.population.url
 
-    slider = alt.binding_range(min=1850, max=2000, step=10)
-    select_year = alt.selection_single(name='year', fields=['year'], bind=slider)
+    slider = alt.binding_range(min=pop.year.min(), max=pop.year.max(), step=10)
+    # the API automatically concatenate the slider title (name) with '_' and fields;
+    # if name is '', defaults to 'selectornnn_<fields>'.
+    select_year = alt.selection_single(name='Select', fields=['year'], bind=slider)
 
     base = alt.Chart(pop).add_selection(
         select_year
@@ -40,19 +42,21 @@ distribution over time.
         datum.gender == 'Female'
     ).encode(
         y=alt.X('age:O', axis=None),
-        x=alt.X('sum(people):Q', axis=title, sort=alt.SortOrder('descending')),
+        x=alt.X('sum(people):Q', axis=title, sort='descending'),
+        # This does not work as per rendering of inverted pyramid:
+        # sort=alt.SortOrder('descending')
         color=alt.Color('gender:N', scale=color_scale, legend=None)
     ).mark_bar().properties(title='Female')
 
     middle = base.encode(
-        y=alt.X('age:O', axis=None),
+        y=alt.X('age:O', axis=None, sort='descending'),
         text=alt.Text('age:Q'),
     ).mark_text().properties(width=20)
 
     right = base.transform_filter(
         datum.gender == 'Male'
     ).encode(
-        y=alt.X('age:O', axis=None),
+        y=alt.X('age:O', axis=None, sort='descending'),
         x=alt.X('sum(people):Q', axis=title),
         color=alt.Color('gender:N', scale=color_scale, legend=None)
     ).mark_bar().properties(title='Male')
